@@ -369,8 +369,8 @@ function love.draw()
     player2:render()
 
     love.graphics.setColor(1, 0, 0, 1)
-    goal1.render()
-    goal2.render()
+    goal1:render()
+    goal2:render()
     love.graphics.setColor(12 / 255, 12 / 255, 12 / 255, 255 / 255)
 
 
