@@ -93,8 +93,8 @@ function love.load()
 
     -- initialize our player paddles; make them global so that they can be
     -- detected by other functions and modules
-    player1 = Paddle(VIRTUAL_WIDTH / 2 - 10, 45 + 5, 20, 5)
-    player2 = Paddle(VIRTUAL_WIDTH / 2 - 10, VIRTUAL_HEIGHT - 45 - 5, 20, 5)
+    player1 = Paddle(VIRTUAL_WIDTH / 2 - 10, 45.2 + 5, 20, 5)
+    player2 = Paddle(VIRTUAL_WIDTH / 2 - 10, VIRTUAL_HEIGHT - 45.2 - 5, 20, 5)
 
     -- place a ball in the middle of the screen
     ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
@@ -154,32 +154,87 @@ function love.update(dt)
         -- slightly increasing it, then altering the dy based on the position
         -- at which it collided, then playing a sound effect
         if ball:collides(player1) then
-            ball.dy = -ball.dy * 1.03
-            ball.y = player1.y + player1.height
+            -- Find the new velocities
+            local vxTotal = ball.dx - player1.dx
+            local vyTotal = ball.dy - player1.dy
+            local newVelX1 = (ball.dx * (ball.mass - player1.mass) + (2 * player1.mass * player1.dx)) /
+                (ball.mass + player1.mass)
+            local newVelY1 = (ball.dy * (ball.mass - player1.mass) + (2 * player1.mass * player1.dy)) /
+                (ball.mass + player1.mass)
+            local newVelX2 = vxTotal + newVelX1
+            local newVelY2 = vyTotal + newVelY1
 
-            -- keep velocity going in the same direction, but randomize it
-            if ball.dx < 0 then
-                ball.dx = -math.random(10, 150)
-            else
-                ball.dx = math.random(10, 150)
-            end
+            -- Move the circles so that they don't overlap
+            local midpointX = (ball.x + player1.x) / 2
+            local midpointY = (ball.y + ball.y) / 2
+            local dist = math.sqrt((ball.x - player1.x) ^ 2 + (ball.y - player1.y) ^ 2)
+            ball.x = midpointX + ball.width * (ball.x - player1.x) / dist
+            ball.y = midpointY + ball.width * (ball.y - player1.y) / dist
+            -- player1.x = midpointX + player1.width * (player1.x - ball.x) / dist
+            -- player1.y = midpointY + player1.width * (player1.y - ball.y) / dist
+
+            -- Update the velocities
+            ball.dx = newVelX1
+            ball.dy = newVelY1
+            -- player1.dx = newVelX2
+            -- player1.dy = newVelY2
 
             sounds['paddle_hit']:play()
         end
         if ball:collides(player2) then
-            ball.dy = -ball.dy * 1.03
-            ball.y = player2.y - ball.height
+            -- Find the new velocities
+            local vxTotal = ball.dx - player2.dx
+            local vyTotal = ball.dy - player2.dy
+            local newVelX1 = (ball.dx * (ball.mass - player2.mass) + (2 * player2.mass * player2.dx)) /
+                (ball.mass + player2.mass)
+            local newVelY1 = (ball.dy * (ball.mass - player2.mass) + (2 * player2.mass * player2.dy)) /
+                (ball.mass + player2.mass)
+            local newVelX2 = vxTotal + newVelX1
+            local newVelY2 = vyTotal + newVelY1
 
-            -- keep velocity going in the same direction, but randomize it
-            if ball.dx < 0 then
-                ball.dx = -math.random(10, 150)
-            else
-                ball.dx = math.random(10, 150)
-            end
+            -- Move the circles so that they don't overlap
+            local midpointX = (ball.x + player2.x) / 2
+            local midpointY = (ball.y + ball.y) / 2
+            local dist = math.sqrt((ball.x - player2.x) ^ 2 + (ball.y - player2.y) ^ 2)
+            ball.x = midpointX + ball.width * (ball.x - player2.x) / dist
+            ball.y = midpointY + ball.width * (ball.y - player2.y) / dist
+            -- player2.x = midpointX + player2.width * (player2.x - ball.x) / dist
+            -- player2.y = midpointY + player2.width * (player2.y - ball.y) / dist
+
+            -- Update the velocities
+            ball.dx = newVelX1
+            ball.dy = newVelY1
+            -- player2.dx = newVelX2
+            -- player2.dy = newVelY2
 
             sounds['paddle_hit']:play()
         end
 
+        if goal1:collides(ball) or goal2:collides(ball) then
+            ball.dx = 0.9 * ball.dx
+            ball.dy = -0.9 * ball.dy
+
+            sounds['wall_hit']:play()
+        end
+
+        if goal1:collides(player1) then
+            -- collision on the left side of goal1
+            if (player1.x - player1.width) <= (goal1.x + goal1.width) then
+                -- Update X position with boundary checking
+                if player1.dx < 0 then
+                    player1.x = math.max(goal1.x + goal1.width + player1.width, player1.x + player1.dx * dt)
+                else
+                    player1.x = math.min(VIRTUAL_WIDTH - player1.width, player1.x + player1.dx * dt)
+                end
+
+                -- Update Y position with boundary checking (using provided bounds)
+                if player1.dy < 0 then
+                    player1.y = math.max(goal1.y + goal1.height + player1.width + 1, player1.y + player1.dy * dt)
+                elseif player1.dy > 0 then
+                    player1.y = math.min(goal1.y + goal1.height - player1.width, player1.y + player1.dy * dt)
+                end
+            end
+        end
         -- detect upper and lower screen boundary collision, playing a sound
         -- effect and reversing dy if true
         if ball.x <= 0 then
@@ -330,24 +385,26 @@ function love.draw()
     -- render different things depending on which part of the game we're in
     if gameState == 'start' then
         -- UI messages
+        love.graphics.setFont(largeFont)
+        love.graphics.printf('Welcome to Air Hockey!', 0, VIRTUAL_HEIGHT / 2 - 20, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
-        love.graphics.printf('Welcome to Air Hockey!', 0, 10, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf('Press Enter to begin!', 0, 20, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press Enter to begin!', 0, VIRTUAL_HEIGHT / 2 + 10, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'serve' then
         -- UI messages
-        love.graphics.setFont(smallFont)
+        love.graphics.setFont(largeFont)
         love.graphics.printf('Player ' .. tostring(servingPlayer) .. "'s serve!",
-            0, 10, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf('Press Enter to serve!', 0, 20, VIRTUAL_WIDTH, 'center')
+            0, VIRTUAL_HEIGHT / 2 - 20, VIRTUAL_WIDTH, 'center')
+        love.graphics.setFont(smallFont)
+        love.graphics.printf('Press Enter to serve!', 0, VIRTUAL_HEIGHT / 2 + 10, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'play' then
         -- no UI messages to display in play
     elseif gameState == 'done' then
         -- UI messages
         love.graphics.setFont(largeFont)
         love.graphics.printf('Player ' .. tostring(winningPlayer) .. ' wins!',
-            0, 10, VIRTUAL_WIDTH, 'center')
+            0, VIRTUAL_HEIGHT / 2 - 20, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
-        love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press Enter to restart!', 0, VIRTUAL_HEIGHT / 2 + 10, VIRTUAL_WIDTH, 'center')
     end
 
     -- show the score before ball is rendered so it can move over the text
@@ -356,6 +413,9 @@ function love.draw()
 
     love.graphics.setColor(255 / 255, 28 / 255, 11 / 255, 255 / 255)
     love.graphics.line(0, VIRTUAL_HEIGHT / 2, VIRTUAL_WIDTH, VIRTUAL_HEIGHT / 2)
+    love.graphics.circle("line", VIRTUAL_WIDTH / 2, 0, 3 * VIRTUAL_WIDTH / 8)
+    love.graphics.circle("line", VIRTUAL_WIDTH / 2, VIRTUAL_HEIGHT, 3 * VIRTUAL_WIDTH / 8)
+
 
     love.graphics.setColor(255 / 255, 28 / 255, 11 / 255, 128 / 255)
     love.graphics.line(0, VIRTUAL_HEIGHT / 4 + 20, VIRTUAL_WIDTH, VIRTUAL_HEIGHT / 4 + 20)
@@ -368,7 +428,7 @@ function love.draw()
     love.graphics.setColor(255 / 255, 26 / 255, 67 / 255, 255 / 255)
     player2:render()
 
-    love.graphics.setColor(1, 0, 0, 1)
+    love.graphics.setColor(0, 0, 0, 1)
     goal1:render()
     goal2:render()
     love.graphics.setColor(12 / 255, 12 / 255, 12 / 255, 255 / 255)

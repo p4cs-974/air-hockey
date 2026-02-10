@@ -19,7 +19,7 @@ function Ball:init(x, y, width, height)
     self.y = y
     self.width = width
     self.height = height
-
+    self.mass = 5
     -- these variables are for keeping track of our velocity on both the
     -- X and Y axis, since the ball can move in two dimensions
     self.dy = 0
@@ -31,20 +31,8 @@ end
     on whether their rectangles overlap.
 ]]
 function Ball:collides(paddle)
-    -- first, check to see if the left edge of either is farther to the right
-    -- than the right edge of the other (X-axis overlap check)
-    if self.x > paddle.x + paddle.width or paddle.x > self.x + self.width then
-        return false
-    end
-
-    -- then check to see if the bottom edge of either is higher than the top
-    -- edge of the other (Y-axis overlap check)
-    if self.y > paddle.y + paddle.height or paddle.y > self.y + self.height then
-        return false
-    end
-
-    -- if the above aren't true, they're overlapping
-    return true
+    local dist = (self.x - paddle.x) ^ 2 + (self.y - paddle.y) ^ 2
+    return dist <= (self.width + paddle.width) ^ 2
 end
 
 --[[
