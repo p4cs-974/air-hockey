@@ -12,7 +12,7 @@
     scoring a point for the opponent.
 ]]
 
-Ball = Class{}
+Ball = Class {}
 
 function Ball:init(x, y, width, height)
     self.x = x
@@ -32,13 +32,13 @@ end
 ]]
 function Ball:collides(paddle)
     -- first, check to see if the left edge of either is farther to the right
-    -- than the right edge of the other
+    -- than the right edge of the other (X-axis overlap check)
     if self.x > paddle.x + paddle.width or paddle.x > self.x + self.width then
         return false
     end
 
     -- then check to see if the bottom edge of either is higher than the top
-    -- edge of the other
+    -- edge of the other (Y-axis overlap check)
     if self.y > paddle.y + paddle.height or paddle.y > self.y + self.height then
         return false
     end
