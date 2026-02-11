@@ -19,7 +19,7 @@ end
 
 function Goal:collides(object)
     nearest_x_to_left = math.max(self.x, math.min(object.x, self.x + self.width))
-    nearest_y = math.max(self.y, math.min(object.x, self.y + self.height))
+    nearest_y = math.max(self.y, math.min(object.y, self.y + self.height))
 
     nearest_x_to_right = math.max(VIRTUAL_WIDTH - self.width, math.min(object.x, VIRTUAL_WIDTH))
 
