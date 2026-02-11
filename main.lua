@@ -41,6 +41,8 @@ require 'Goal'
 -- but which will mechanically function very differently
 require 'Ball'
 
+mouse = {}
+
 -- size of our actual window
 WINDOW_WIDTH = 540
 WINDOW_HEIGHT = 960
@@ -140,6 +142,8 @@ end
     across system hardware.
 ]]
 function love.update(dt)
+    mouse.x, mouse.y = love.mouse.getPosition()
+
     if gameState == 'serve' then
         -- before switching to play, initialize ball's velocity based
         -- on player who last scored
@@ -272,20 +276,34 @@ function love.update(dt)
     --
     -- paddles can move no matter what state we're in
     --
-    -- player 1 movement (WASD: A/D for X-axis, W/S for Y-axis)
-    if love.keyboard.isDown('a') then
-        player1.dx = -PADDLE_SPEED
-    elseif love.keyboard.isDown('d') then
-        player1.dx = PADDLE_SPEED
-    else
-        player1.dx = 0
-    end
 
-    if love.keyboard.isDown('w') then
-        player1.dy = -PADDLE_SPEED
-    elseif love.keyboard.isDown('s') then
-        player1.dy = PADDLE_SPEED
+    -- Player 1: Mouse-based angular movement
+    -- Convert mouse screen coordinates to virtual game coordinates
+    local virtualMouseX, virtualMouseY = push:toGame(mouse.x, mouse.y)
+
+    -- Check if mouse is within valid game window bounds
+    if virtualMouseX and virtualMouseY and
+        virtualMouseX >= 0 and virtualMouseX <= VIRTUAL_WIDTH and
+        virtualMouseY >= 0 and virtualMouseY <= VIRTUAL_HEIGHT then
+        -- Calculate angle from paddle to mouse position
+        local angle = math.atan2(virtualMouseY - player1.y, virtualMouseX - player1.x)
+
+        -- Calculate distance from paddle to mouse
+        local dx = virtualMouseX - player1.x
+        local dy = virtualMouseY - player1.y
+        local distance = math.sqrt(dx * dx + dy * dy)
+
+        -- Set dx and dy based on angle and speed, with a threshold to prevent jittering
+        if distance > 5 then
+            player1.dx = math.cos(angle) * PADDLE_SPEED
+            player1.dy = math.sin(angle) * PADDLE_SPEED
+        else
+            player1.dx = 0
+            player1.dy = 0
+        end
     else
+        -- Mouse is outside the window, stop the paddle
+        player1.dx = 0
         player1.dy = 0
     end
 
@@ -438,7 +456,7 @@ function love.draw()
     displayFPS()
 
     -- display player positions for debugging
-    displayPlayerPositions()
+    -- displayPlayerPositions()
 
     -- end our drawing to push
     push:finish()
@@ -461,10 +479,10 @@ end
 ]]
 function displayFPS()
     -- simple FPS display across all states
-    -- love.graphics.setFont(smallFont)
-    -- love.graphics.setColor(0, 255 / 255, 0, 255 / 255)
-    -- love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
-    -- love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.setFont(smallFont)
+    love.graphics.setColor(0, 255 / 255, 0, 255 / 255)
+    love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
+    love.graphics.setColor(255, 255, 255, 255)
 end
 
 function displayPlayerPositions()
