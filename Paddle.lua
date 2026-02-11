@@ -40,7 +40,7 @@ end
 function Paddle:update(dt, minY, maxY)
     -- Update X position with boundary checking
     if self.dx < 0 then
-        self.x = math.max(-1 + self.width, self.x + self.dx * dt)
+        self.x = math.max(0 + self.width, self.x + self.dx * dt)
     else
         self.x = math.min(VIRTUAL_WIDTH - self.width, self.x + self.dx * dt)
     end
@@ -49,7 +49,7 @@ function Paddle:update(dt, minY, maxY)
     if self.dy < 0 then
         self.y = math.max(minY, self.y + self.dy * dt)
     else
-        self.y = math.min(maxY - self.height, self.y + self.dy * dt)
+        self.y = math.min(maxY, self.y + self.dy * dt)
     end
 end
 

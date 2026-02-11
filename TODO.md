@@ -6,6 +6,6 @@
 -[X] Os players podem se mover em qualquer direção, mas não podem invadir o campo adversário.
 -[X] Imagem de fundo.
 -[X] Palhetas redondas.
-  - [ ] Arrumar colisão
--[ ] Tamanho do gol reduzido (não é a parede inteira) e com cores diferentes.
+  - [X] Arrumar colisão
+-[X] Tamanho do gol reduzido (não é a parede inteira) e com cores diferentes.
 -[X] Sons de colisão

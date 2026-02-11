@@ -313,9 +313,9 @@ function love.update(dt)
     end
 
     -- Player 1 (top half): can only move between y=0 and the middle line
-    player1:update(dt, 0, VIRTUAL_HEIGHT / 2)
+    player1:update(dt, 0 + player1.width, VIRTUAL_HEIGHT / 2 - player1.width)
     -- Player 2 (bottom half): can only move between the middle line and the bottom
-    player2:update(dt, VIRTUAL_HEIGHT / 2, VIRTUAL_HEIGHT)
+    player2:update(dt, VIRTUAL_HEIGHT / 2 + player2.width, VIRTUAL_HEIGHT - player2.width)
 
     -- Check goal collision for player 1 with goal 1 (top goal)
     if goal1:collidesWithPlayer(player1) then
