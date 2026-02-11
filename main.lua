@@ -217,24 +217,51 @@ function love.update(dt)
             sounds['wall_hit']:play()
         end
 
-        if goal1:collides(player1) then
+        if goal1:collides(player1) == "left" then
+            -- print("Collision on goal1 -> left")
             -- collision on the left side of goal1
-            if (player1.x - player1.width) <= (goal1.x + goal1.width) then
+            if player1.dx < 0 then
+                player1.x = math.max(goal1.x + goal1.width + player1.width, player1.x + player1.dx * dt)
+            elseif player1.dx >= 0 then
+                player1.x = math.min(VIRTUAL_WIDTH - player1.width, player1.x + player1.dx * dt)
+            end
+            if (player1.y - player1.width <= goal1.y + goal1.height) and (player1.x - player1.width ~= goal1.x + goal1.width) then
+                -- print(3)
                 -- Update X position with boundary checking
-                if player1.dx < 0 then
-                    player1.x = math.max(goal1.x + goal1.width + player1.width, player1.x + player1.dx * dt)
+
+
+                -- Update Y position with boundary checking (using provided bounds)
+                -- if player1.dy < 0 then
+                if player1.dy < 0 then
+                    -- print(1)
+                    player1.y = math.max(goal1.y + goal1.height + player1.width, player1.y + player1.dy * dt)
+                elseif player1.dy > 0 then
+                    -- print(2)
+                    player1.y = math.max(goal1.y + goal1.height - player1.width, player1.y + player1.dy * dt)
+                end
+            end
+        elseif goal1:collides(player1) == "right" then
+            -- collision on the right side of goal1
+            if (player1.x + player1.width) >= (VIRTUAL_WIDTH / 2 + goal1.gap / 2) then
+                -- Update X position with boundary checking
+                if player1.dx <= 0 then
+                    player1.x = math.max(VIRTUAL_WIDTH / 2 + goal1.gap / 2 + player1.width, player1.x + player1.dx * dt)
                 else
-                    player1.x = math.min(VIRTUAL_WIDTH - player1.width, player1.x + player1.dx * dt)
+                    player1.x = math.min(VIRTUAL_WIDTH / 2 + goal1.gap / 2 - player1.width,
+                        player1.x + player1.width - player1.dx * dt)
                 end
 
                 -- Update Y position with boundary checking (using provided bounds)
                 if player1.dy < 0 then
-                    player1.y = math.max(goal1.y + goal1.height + player1.width + 1, player1.y + player1.dy * dt)
+                    player1.y = math.max(goal1.y + goal1.height + player1.width + 1,
+                        player1.y + player1.width + player1.dy * dt)
                 elseif player1.dy > 0 then
                     player1.y = math.min(goal1.y + goal1.height - player1.width, player1.y + player1.dy * dt)
                 end
             end
         end
+
+
         -- detect upper and lower screen boundary collision, playing a sound
         -- effect and reversing dy if true
         if ball.x <= 0 then
@@ -438,6 +465,9 @@ function love.draw()
     -- display FPS for debugging; simply comment out to remove
     displayFPS()
 
+    -- display player positions for debugging
+    displayPlayerPositions()
+
     -- end our drawing to push
     push:finish()
 end
@@ -463,4 +493,17 @@ function displayFPS()
     -- love.graphics.setColor(0, 255 / 255, 0, 255 / 255)
     -- love.graphics.print('FPS: ' .. tostring(love.timer.getFPS()), 10, 10)
     -- love.graphics.setColor(255, 255, 255, 255)
+end
+
+function displayPlayerPositions()
+    -- display player paddle positions for debugging
+    love.graphics.setFont(smallFont)
+    love.graphics.setColor(0, 1, 0, 1)
+    love.graphics.print(
+        'Player1: x=' ..
+        string.format("%.2f", player1.x) ..
+        ', y=' .. string.format("%.2f", player1.y) .. ', dy=' .. string.format("%.2f", player1.dy),
+        10, 10)
+    love.graphics.print('Player2: x=' .. string.format("%.2f", player2.x) .. ', y=' .. string.format("%.2f", player2.y),
+        10, 25)
 end

@@ -5,10 +5,10 @@ function Goal:init(player)
     -- assert((type(player) == "number") & (player == 1 | player == 2), "player must be a number = 1 or 2")
     self.x = -1
     self.gap = 70
-    self.height = 10
+    self.height = 11
     self.width = self.gap
     if player == 1 then
-        self.y = 0
+        self.y = -1
         self.owner = 1
     elseif player == 2 then
         self.y = VIRTUAL_HEIGHT - self.height
@@ -30,7 +30,12 @@ function Goal:collides(object)
     dist_left = dist_x_left ^ 2 + dist_y ^ 2
     dist_right = dist_x_right ^ 2 + dist_y ^ 2
 
-    return dist_left <= object.width ^ 2 or dist_right <= object.width ^ 2
+    if dist_left <= object.width ^ 2 then
+        return "left"
+    end
+    if dist_right <= object.width ^ 2 then
+        return "right"
+    end
 end
 
 function Goal:render()
