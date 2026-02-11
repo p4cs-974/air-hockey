@@ -38,6 +38,35 @@ function Goal:collides(object)
     end
 end
 
+function Goal:collidesWithPlayer(player)
+    -- Helper function to check collision between circle (player) and rectangle
+    local function checkCircleRectCollision(circleX, circleY, radius, rectX, rectY, rectW, rectH)
+        -- Find the closest point on the rectangle to the circle's center
+        local closestX = math.max(rectX, math.min(circleX, rectX + rectW))
+        local closestY = math.max(rectY, math.min(circleY, rectY + rectH))
+
+        -- Calculate the distance squared from the circle's center to the closest point
+        local distX = circleX - closestX
+        local distY = circleY - closestY
+        local distanceSquared = distX * distX + distY * distY
+
+        -- Check if the distance is less than or equal to the radius squared
+        return distanceSquared <= radius * radius
+    end
+
+    -- Check collision with left rectangle
+    if checkCircleRectCollision(player.x, player.y, player.width, self.x, self.y, self.width, self.height) then
+        return true
+    end
+
+    -- Check collision with right rectangle
+    if checkCircleRectCollision(player.x, player.y, player.width, VIRTUAL_WIDTH - self.width, self.y, self.width, self.height) then
+        return true
+    end
+
+    return false
+end
+
 function Goal:render()
     if self.owner == 1 then
         love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
