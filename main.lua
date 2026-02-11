@@ -41,6 +41,10 @@ require 'Goal'
 -- but which will mechanically function very differently
 require 'Ball'
 
+-- Ghost System AI for CPU paddle
+require 'GhostPuck'
+require 'CPUPaddleController'
+
 mouse = {}
 
 -- size of our actual window
@@ -100,6 +104,9 @@ function love.load()
 
     -- place a ball in the middle of the screen
     ball = Ball(VIRTUAL_WIDTH / 2 - 2, VIRTUAL_HEIGHT / 2 - 2, 4, 4)
+
+    -- Initialize CPU controller for Player 2 (Ghost System AI)
+    cpuController = CPUPaddleController(player2, ball)
 
     goal1 = Goal(1)
     goal2 = Goal(2)
@@ -214,10 +221,20 @@ function love.update(dt)
             sounds['paddle_hit']:play()
         end
 
-        if goal1:collides(ball) or goal2:collides(ball) then
+        local goal1Collision = goal1:collides(ball)
+        local goal2Collision = goal2:collides(ball)
+        
+        if goal1Collision then
+            -- Push ball down below the goal to prevent sticking
+            ball.y = goal1.y + goal1.height + ball.width
             ball.dx = 0.9 * ball.dx
             ball.dy = -0.9 * ball.dy
-
+            sounds['wall_hit']:play()
+        elseif goal2Collision then
+            -- Push ball up above the goal to prevent sticking
+            ball.y = goal2.y - ball.width
+            ball.dx = 0.9 * ball.dx
+            ball.dy = -0.9 * ball.dy
             sounds['wall_hit']:play()
         end
 
@@ -253,8 +270,8 @@ function love.update(dt)
                 gameState = 'done'
             else
                 gameState = 'serve'
-                -- places the ball in the middle of the screen, no velocity
                 ball:reset()
+                cpuController:reset()
             end
         end
 
@@ -269,6 +286,7 @@ function love.update(dt)
             else
                 gameState = 'serve'
                 ball:reset()
+                cpuController:reset()
             end
         end
     end
@@ -277,23 +295,17 @@ function love.update(dt)
     -- paddles can move no matter what state we're in
     --
 
-    -- Player 1: Mouse-based angular movement
-    -- Convert mouse screen coordinates to virtual game coordinates
+    -- Player 1: Mouse-based angular movement (Human control)
     local virtualMouseX, virtualMouseY = push:toGame(mouse.x, mouse.y)
 
-    -- Check if mouse is within valid game window bounds
     if virtualMouseX and virtualMouseY and
         virtualMouseX >= 0 and virtualMouseX <= VIRTUAL_WIDTH and
         virtualMouseY >= 0 and virtualMouseY <= VIRTUAL_HEIGHT then
-        -- Calculate angle from paddle to mouse position
         local angle = math.atan2(virtualMouseY - player1.y, virtualMouseX - player1.x)
-
-        -- Calculate distance from paddle to mouse
         local dx = virtualMouseX - player1.x
         local dy = virtualMouseY - player1.y
         local distance = math.sqrt(dx * dx + dy * dy)
 
-        -- Set dx and dy based on angle and speed, with a threshold to prevent jittering
         if distance > 5 then
             player1.dx = math.cos(angle) * PADDLE_SPEED
             player1.dy = math.sin(angle) * PADDLE_SPEED
@@ -302,25 +314,15 @@ function love.update(dt)
             player1.dy = 0
         end
     else
-        -- Mouse is outside the window, stop the paddle
         player1.dx = 0
         player1.dy = 0
     end
 
-    -- player 2 movement (Arrow keys: left/right for X-axis, up/down for Y-axis)
-    if love.keyboard.isDown('left') then
-        player2.dx = -PADDLE_SPEED
-    elseif love.keyboard.isDown('right') then
-        player2.dx = PADDLE_SPEED
+    -- Player 2: Ghost System AI Controller
+    if gameState == 'play' then
+        cpuController:update(dt, player1)
     else
         player2.dx = 0
-    end
-
-    if love.keyboard.isDown('up') then
-        player2.dy = -PADDLE_SPEED
-    elseif love.keyboard.isDown('down') then
-        player2.dy = PADDLE_SPEED
-    else
         player2.dy = 0
     end
 
@@ -374,6 +376,7 @@ function love.keypressed(key)
             gameState = 'serve'
 
             ball:reset()
+            cpuController:reset()
 
             -- reset scores to 0
             player1Score = 0
@@ -454,6 +457,9 @@ function love.draw()
 
     -- display FPS for debugging; simply comment out to remove
     displayFPS()
+
+    -- display CPU AI debug visualization
+    cpuController:renderDebug()
 
     -- display player positions for debugging
     -- displayPlayerPositions()
