@@ -34,7 +34,7 @@ function Paddle:init(x, y, width, height)
     self.height = width
     self.dx = 0
     self.dy = 0
-    self.mass = 20
+    self.mass = 18
 end
 
 function Paddle:update(dt, minY, maxY)

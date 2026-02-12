@@ -19,7 +19,7 @@ function Ball:init(x, y, width, height)
     self.y = y
     self.width = width
     self.height = height
-    self.mass = 5
+    self.mass = 4
     -- these variables are for keeping track of our velocity on both the
     -- X and Y axis, since the ball can move in two dimensions
     self.dy = 0

@@ -1,22 +1,3 @@
---[[
-    GD50 2018
-    Pong Remake
-
-    -- Main Program --
-
-    Author: Colton Ogden
-    cogden@cs50.harvard.edu
-
-    Originally programmed by Atari in 1972. Features two
-    paddles, controlled by players, with the goal of getting
-    the ball past your opponent's edge. First to 10 points wins.
-
-    This version is built to more closely resemble the NES than
-    the original Pong machines or the Atari 2600 in terms of
-    resolution, though in widescreen (16:9) so it looks nicer on
-    modern systems.
-]]
-
 -- push is a library that will allow us to draw our game at a virtual
 -- resolution, instead of however large our window is; used to provide
 -- a more retro aesthetic
@@ -56,7 +37,7 @@ VIRTUAL_WIDTH = 243
 VIRTUAL_HEIGHT = 433
 
 -- paddle movement speed
-PADDLE_SPEED = 180
+PADDLE_SPEED = 210
 
 --[[
     Called just once at the beginning of the game; used to set up
@@ -223,7 +204,7 @@ function love.update(dt)
 
         local goal1Collision = goal1:collides(ball)
         local goal2Collision = goal2:collides(ball)
-        
+
         if goal1Collision then
             -- Push ball down below the goal to prevent sticking
             ball.y = goal1.y + goal1.height + ball.width
@@ -456,10 +437,10 @@ function love.draw()
 
 
     -- display FPS for debugging; simply comment out to remove
-    displayFPS()
+    -- displayFPS()
 
     -- display CPU AI debug visualization
-    cpuController:renderDebug()
+    -- cpuController:renderDebug()
 
     -- display player positions for debugging
     -- displayPlayerPositions()
